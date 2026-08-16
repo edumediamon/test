@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>산단기 주관식 셀프 체크</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #667085;
+      --paper: #fffdf8;
+      --navy: #153b52;
+      --navy-light: #e9f1f4;
+      --orange: #ff7a3d;
+      --yellow: #ffd56a;
+      --green: #16856b;
+      --green-light: #e8f7f1;
+      --red: #c64444;
+      --red-light: #fff0ef;
+      --triangle: #d68717;
+      --triangle-light: #fff6dd;
+      --line: #d9ddd8;
+      --shadow: 0 16px 45px rgba(21, 59, 82, 0.11);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(21, 59, 82, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(21, 59, 82, 0.035) 1px, transparent 1px),
+        #f4f1e9;
+      background-size: 26px 26px;
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      line-height: 1.6;
+    }
+
+    button, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--navy);
+      font-size: 21px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px 12px 4px 12px;
+      color: #fff;
+      background: var(--orange);
+      font-size: 14px;
+      transform: rotate(-3deg);
+    }
+
+    .save-state { color: var(--muted); font-size: 13px; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 28px;
+      align-items: end;
+      padding: 38px 40px;
+      color: #fff;
+      border-radius: 30px 30px 10px 30px;
+      background: var(--navy);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "OX△";
+      position: absolute;
+      right: -14px;
+      top: -18px;
+      color: rgba(255, 255, 255, .055);
+      font-size: 160px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -.12em;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 6px 11px;
+      border-radius: 999px;
+      color: var(--navy);
+      background: var(--yellow);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin: 14px 0 10px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.08;
+      letter-spacing: -0.06em;
+    }
+
+    .hero p { margin: 0; max-width: 650px; color: rgba(255,255,255,.77); }
+
+    .score-board {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 20px;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .metric { text-align: center; }
+    .metric strong { display: block; font-size: 24px; }
+    .metric span { color: rgba(255,255,255,.65); font-size: 12px; }
+    .metric.o strong { color: #7ee0bd; }
+    .metric.triangle strong { color: var(--yellow); }
+    .metric.x strong { color: #ffaaa5; }
+
+    .progress-wrap { grid-column: 1 / -1; margin-top: 6px; }
+    .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.15); }
+    .progress-bar { width: 0; height: 100%; border-radius: inherit; background: var(--yellow); transition: width .3s ease; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 22px 0 16px;
+    }
+
+    .filter-group { display: flex; align-items: center; gap: 10px; }
+    .filter-group label { color: var(--navy); font-weight: 800; }
+
+    select {
+      min-width: 180px;
+      padding: 10px 36px 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: var(--paper);
+      outline: none;
+    }
+
+    .toolbar-right { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+    .reset-button { padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: var(--paper); }
+    .reset-button:hover { color: var(--red); border-color: #e5b5b2; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .question-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 390px;
+      padding: 25px;
+      border: 1px solid rgba(21,59,82,.12);
+      border-radius: 24px 24px 8px 24px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      transition: transform .2s ease, border-color .2s ease;
+    }
+
+    .question-card:hover { transform: translateY(-2px); }
+    .question-card[data-result="O"] { border-color: #89cbb4; }
+    .question-card[data-result="△"] { border-color: #ebc66d; }
+    .question-card[data-result="X"] { border-color: #e6aaa6; }
+
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { padding: 4px 9px; border-radius: 999px; color: var(--navy); background: var(--navy-light); font-size: 11px; font-weight: 800; }
+    .chip.level { color: #8a3d1b; background: #fff0e7; }
+    .number { color: #b1b5b9; font-size: 13px; font-weight: 900; }
+
+    .question-title {
+      margin: 20px 0 10px;
+      font-size: clamp(20px, 2.2vw, 27px);
+      line-height: 1.4;
+      letter-spacing: -0.045em;
+    }
+
+    .hint { margin: 0; padding-left: 11px; border-left: 3px solid var(--yellow); color: var(--muted); font-size: 13px; }
+
+    .answer-area {
+      display: none;
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 15px;
+      background: #f3f5f1;
+      animation: reveal .22s ease-out;
+    }
+
+    .answer-area.show { display: block; }
+    .answer-area h3 { margin: 0 0 5px; color: var(--navy); font-size: 13px; }
+    .answer-area p { margin: 0; color: #465164; font-size: 13px; }
+    .answer-area .explanation { margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line); }
+
+    .card-bottom { margin-top: auto; padding-top: 20px; }
+    .reveal-button { width: 100%; min-height: 42px; border: 0; border-radius: 12px; color: var(--navy); background: var(--navy-light); font-weight: 800; }
+    .reveal-button:hover { background: #dce9ee; }
+
+    .self-check { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 9px; }
+    .check-button { min-height: 49px; border: 1px solid var(--line); border-radius: 13px; background: #fff; font-size: 20px; font-weight: 900; transition: .18s ease; }
+    .check-button small { display: block; margin-top: -5px; font-size: 10px; font-weight: 700; }
+    .check-button.o { color: var(--green); }
+    .check-button.triangle { color: var(--triangle); }
+    .check-button.x { color: var(--red); }
+    .check-button.o:hover, .check-button.o.active { border-color: #79c5aa; background: var(--green-light); }
+    .check-button.triangle:hover, .check-button.triangle.active { border-color: #e5bb51; background: var(--triangle-light); }
+    .check-button.x:hover, .check-button.x.active { border-color: #dc9994; background: var(--red-light); }
+
+    .empty { grid-column: 1 / -1; padding: 60px 20px; color: var(--muted); text-align: center; }
+
+    @keyframes reveal { from { opacity: 0; transform: translateY(5px); } }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .shell { width: min(100% - 18px, 1240px); padding-top: 14px; }
+      .topbar { align-items: flex-start; }
+      .save-state { text-align: right; }
+      .hero { padding: 27px 22px; border-radius: 22px 22px 7px 22px; }
+      .hero::after { font-size: 100px; }
+      .score-board { grid-template-columns: repeat(4, 1fr); padding: 12px 8px; }
+      .metric strong { font-size: 20px; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .toolbar-right { width: 100%; justify-content: space-between; }
+      .filter-group { width: 100%; }
+      select { flex: 1; min-width: 0; }
+      .question-card { min-height: 365px; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">산</span>산단기 주관식 셀프 체크</div>
+      <div class="save-state" id="saveState">선택 결과가 자동 저장됩니다</div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <span class="eyebrow">카드형 주관식 반복 학습</span>
+        <h1>답을 확인하고<br>O · △ · X로 체크.</h1>
+        <p>문제를 머릿속으로 풀어본 뒤 모범답안을 확인하세요. 알고 있으면 O, 헷갈리면 △, 모르면 X를 선택합니다.</p>
+      </div>
+      <div class="score-board" aria-label="학습 현황">
+        <div class="metric"><strong id="checkedCount">0</strong><span>완료</span></div>
+        <div class="metric o"><strong id="oCount">0</strong><span>O 알아요</span></div>
+        <div class="metric triangle"><strong id="triangleCount">0</strong><span>△ 헷갈려요</span></div>
+        <div class="metric x"><strong id="xCount">0</strong><span>X 몰라요</span></div>
+        <div class="progress-wrap"><div class="progress-track"><div class="progress-bar" id="progressBar"></div></div></div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="filter-group">
+        <label for="categoryFilter">과목</label>
+        <select id="categoryFilter">
+          <option value="전체">전체 과목</option>
+          <option value="산업안전관리">산업안전관리</option>
+          <option value="건설안전">건설안전</option>
+          <option value="전기안전">전기안전</option>
+          <option value="기계안전">기계안전</option>
+        </select>
+      </div>
+      <div class="toolbar-right"><span id="filteredCount">10개의 문제 카드</span><button class="reset-button" id="resetButton" type="button">선택 초기화</button></div>
+    </section>
+
+    <section class="card-grid" id="cardGrid"></section>
+  </main>
+
+  <script>
+    const questions = [
+      { id: 1, category: "산업안전관리", level: "기본", title: "산업재해 발생의 직접 원인 두 가지를 쓰시오.", hint: "하인리히의 재해 발생 원인 분류를 떠올려 보세요.", answer: "산업재해의 직접 원인은 불안전한 행동과 불안전한 상태이다.", explanation: "인적 요인인 불안전한 행동과 물적·환경적 요인인 불안전한 상태가 사고로 이어지는 직접 원인입니다." },
+      { id: 2, category: "산업안전관리", level: "기본", title: "위험성평가의 의미를 간단히 설명하시오.", hint: "유해·위험요인을 찾은 뒤 무엇을 결정하고 줄이는지 생각해 보세요.", answer: "사업장의 유해·위험요인을 파악하고 위험성을 결정한 뒤, 그 결과에 따라 위험성 감소대책을 수립하고 실행하는 과정이다.", explanation: "파악, 위험성 결정, 감소대책 수립·실행의 흐름이 답안에 드러나야 합니다." },
+      { id: 3, category: "산업안전관리", level: "심화", title: "하인리히의 사고예방 원리 5단계를 순서대로 쓰시오.", hint: "조직 → 사실 → 분석 → 대책 → 적용의 흐름입니다.", answer: "안전관리 조직 → 사실의 발견 → 분석·평가 → 시정책의 선정 → 시정책의 적용 순이다.", explanation: "조직을 갖추고 자료를 수집한 뒤 원인을 분석하고, 적절한 대책을 선정하여 현장에 적용합니다." },
+      { id: 4, category: "건설안전", level: "기본", title: "추락을 방지하기 위한 안전시설 세 가지를 쓰시오.", hint: "작업발판 주변, 개구부, 개인보호구를 생각해 보세요.", answer: "안전난간, 개구부 덮개, 추락방호망을 설치한다. 작업 여건에 따라 안전대 부착설비도 사용한다.", explanation: "추락 위험 장소에는 집단방호 조치를 우선 적용하고 필요한 경우 개인보호구를 함께 사용합니다." },
+      { id: 5, category: "건설안전", level: "심화", title: "굴착 작업 시 지반 붕괴를 방지하는 조치 세 가지를 쓰시오.", hint: "흙막이, 굴착면 기울기, 배수 관점에서 생각해 보세요.", answer: "흙막이 지보공을 설치하고, 지반에 맞는 굴착면 기울기를 유지하며, 배수시설을 설치해 지하수와 빗물을 제거한다.", explanation: "붕괴 방지는 지반 지지, 안전한 굴착 각도 유지, 수분 제거가 핵심입니다." },
+      { id: 6, category: "전기안전", level: "기본", title: "감전재해를 예방하는 기본 대책 세 가지를 쓰시오.", hint: "충전부, 접지, 보호장치를 떠올려 보세요.", answer: "충전부를 절연하거나 방호하고, 전기기기를 접지하며, 누전차단기를 설치한다.", explanation: "충전부와의 접촉 방지, 고장 전류의 안전한 방출, 이상 전류의 신속한 차단이 기본 원칙입니다." },
+      { id: 7, category: "전기안전", level: "심화", title: "전기 작업 전 정전작업 절차의 핵심 네 가지를 쓰시오.", hint: "차단 이후 재투입 방지와 무전압 확인이 중요합니다.", answer: "전원을 차단하고, 잠금 및 표지로 재투입을 방지하며, 검전기로 무전압을 확인한 뒤 필요 시 단락접지한다.", explanation: "오조작과 유도전압 등의 위험을 막기 위한 확인·접지 절차까지 필요합니다." },
+      { id: 8, category: "기계안전", level: "기본", title: "기계의 위험점 중 협착점과 끼임점의 차이를 설명하시오.", hint: "왕복운동과 회전운동의 차이를 중심으로 생각해 보세요.", answer: "협착점은 왕복운동부와 고정부 사이에서 신체가 눌리는 위험점이고, 끼임점은 회전하는 두 물체 또는 회전체와 고정부 사이에 신체가 말려드는 위험점이다.", explanation: "운동 형태와 상대 물체를 구분해 설명하면 정확한 답안이 됩니다." },
+      { id: 9, category: "기계안전", level: "기본", title: "프레스 작업의 주요 방호장치 세 가지를 쓰시오.", hint: "손을 위험점에서 떼게 하거나 접근 자체를 막는 장치입니다.", answer: "양수조작식, 광전자식, 가드식 방호장치가 있다.", explanation: "프레스 방호장치는 위험점 접근을 차단하거나 손이 위험영역에 있을 때 기계가 작동하지 않도록 합니다." },
+      { id: 10, category: "산업안전관리", level: "심화", title: "재해율을 낮추기 위한 관리적 대책 세 가지를 설명하시오.", hint: "교육, 점검, 절차와 책임체계를 중심으로 생각해 보세요.", answer: "정기적인 안전교육을 실시하고, 작업장 점검과 위험요인 개선을 지속하며, 안전작업절차와 책임체계를 명확히 운영한다.", explanation: "관리적 대책은 사람의 행동과 조직 운영을 개선하는 조치로, 교육·점검·절차가 대표적인 축입니다." }
+    ];
+
+    const storageKey = "sandanki-self-check-v2";
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    const state = { filter: "전체", results: saved.results || {}, openCards: {} };
+    const $ = (id) => document.getElementById(id);
+
+    function filteredQuestions() {
+      return state.filter === "전체" ? questions : questions.filter((q) => q.category === state.filter);
+    }
+
+    function persist() {
+      localStorage.setItem(storageKey, JSON.stringify({ results: state.results }));
+      $("saveState").textContent = "방금 선택 결과를 저장했습니다";
+      clearTimeout(persist.timer);
+      persist.timer = setTimeout(() => $("saveState").textContent = "선택 결과가 자동 저장됩니다", 1500);
+    }
+
+    function renderStats() {
+      const values = Object.values(state.results);
+      $("checkedCount").textContent = values.length;
+      $("oCount").textContent = values.filter((v) => v === "O").length;
+      $("triangleCount").textContent = values.filter((v) => v === "△").length;
+      $("xCount").textContent = values.filter((v) => v === "X").length;
+      $("progressBar").style.width = `${values.length / questions.length * 100}%`;
+    }
+
+    function cardTemplate(q) {
+      const result = state.results[q.id] || "";
+      const open = state.openCards[q.id] || false;
+      return `
+        <article class="question-card" data-card-id="${q.id}" data-result="${result}">
+          <div class="card-top">
+            <div class="chips"><span class="chip">${q.category}</span><span class="chip level">${q.level}</span></div>
+            <span class="number">Q${String(q.id).padStart(2, "0")}</span>
+          </div>
+          <h2 class="question-title">${q.title}</h2>
+          <p class="hint">${q.hint}</p>
+          <div class="answer-area ${open ? "show" : ""}" id="answer-${q.id}">
+            <h3>모범답안</h3><p>${q.answer}</p>
+            <p class="explanation"><strong>해설</strong><br>${q.explanation}</p>
+          </div>
+          <div class="card-bottom">
+            <button class="reveal-button" type="button" data-reveal="${q.id}">${open ? "모범답안 닫기" : "모범답안 보기"}</button>
+            <div class="self-check" aria-label="문제 ${q.id} 자기평가">
+              <button class="check-button o ${result === "O" ? "active" : ""}" type="button" data-id="${q.id}" data-value="O">O<small>알아요</small></button>
+              <button class="check-button triangle ${result === "△" ? "active" : ""}" type="button" data-id="${q.id}" data-value="△">△<small>헷갈려요</small></button>
+              <button class="check-button x ${result === "X" ? "active" : ""}" type="button" data-id="${q.id}" data-value="X">X<small>몰라요</small></button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function renderCards() {
+      const list = filteredQuestions();
+      $("filteredCount").textContent = `${list.length}개의 문제 카드`;
+      $("cardGrid").innerHTML = list.length ? list.map(cardTemplate).join("") : '<div class="empty">선택한 과목에 문제가 없습니다.</div>';
+
+      document.querySelectorAll("[data-reveal]").forEach((button) => button.addEventListener("click", () => {
+        const id = Number(button.dataset.reveal);
+        state.openCards[id] = !state.openCards[id];
+        renderCards();
+      }));
+
+      document.querySelectorAll("[data-value]").forEach((button) => button.addEventListener("click", () => {
+        const id = Number(button.dataset.id);
+        const value = button.dataset.value;
+        state.results[id] = state.results[id] === value ? undefined : value;
+        if (!state.results[id]) delete state.results[id];
+        state.openCards[id] = true;
+        persist();
+        renderCards();
+        renderStats();
+      }));
+    }
+
+    $("categoryFilter").addEventListener("change", (event) => {
+      state.filter = event.target.value;
+      renderCards();
+    });
+
+    $("resetButton").addEventListener("click", () => {
+      if (!confirm("모든 O, △, X 선택 결과를 초기화할까요?")) return;
+      state.results = {};
+      persist();
+      renderCards();
+      renderStats();
+    });
+
+    renderCards();
+    renderStats();
+  </script>
+</body>
+</html>
